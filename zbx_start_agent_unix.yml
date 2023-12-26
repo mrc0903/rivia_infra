@@ -24,15 +24,15 @@
 
   - name: Start Zabbix Agent - Linux Default
     service:
-      name: zabbix-agent
+      name: zabbix-agent2
       state: started
     ignore_errors: yes
     
 
 ###### READ LOG     #######
 
-  - name: Read /var/log/zabbix/zabbix_agentd.log
+  - name: Read /var/log/zabbix/zabbix_agent2.log
     ignore_errors: yes
-    shell: "tail -n 20 /var/log/zabbix/zabbix_agentd.log"
+    shell: "tail -n 20 /var/log/zabbix/zabbix_agent2.log"
     register: out_log
 ...
