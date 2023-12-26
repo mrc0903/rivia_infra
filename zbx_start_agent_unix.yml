@@ -1,0 +1,69 @@
+---
+- name: restart zabbix agent on unix
+  hosts: all
+  become: yes
+  gather_facts: true
+   
+
+  tasks:
+
+  - name: checking process zabbix
+    shell: ps -ef | grep zabbix | grep -v grep | awk '{print $2}'
+    register: ps_zabbix
+   
+  - name: kill zabbix processes
+    become: yes
+    shell: kill -TERM {{item}}
+    with_items:
+      - "{{ps_zabbix.stdout_lines}}"
+    when: "{{ps_zabbix.stdout != ''}}" 
+    ignore_errors: yes
+
+  - name: create /var/run/zabbix
+    ignore_errors: yes
+    shell: "mkdir /var/run/zabbix"
+    register: mkdir_out
+
+  - name: permission /var/run/zabbix
+    ignore_errors: yes
+    shell: "chown -R zabbix:soti /var/run/zabbix"
+    register: chown_out
+
+
+#####     START      #####
+
+  - name: start zabbix agent in case of aix and solaris
+    become: yes
+    shell: /etc/rc.zabbix start
+    #when: 
+    #  ansible_os_family in ['AIX', 'Solaris'] # depois que subir a versao do server/agentes descomentar essas 3 ultimas linhas
+    ignore_errors: yes
+
+  - name: start zabbix agent command
+    ignore_errors: yes
+    shell: "/sbin/zabbix_agentd -c /etc/zabbix/zabbix_agentd.conf"
+    register: out_conf
+
+  - name: start zabbix agent in case of linux 
+    become: yes
+    sysvinit:
+      name: rc.zabbix
+      state: started
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse']
+    ignore_errors: yes
+
+  - name: Start Zabbix Agent - Linux Default
+    service:
+      name: zabbix-agent
+      state: started
+    ignore_errors: yes
+    
+
+###### READ LOG     #######
+
+  - name: Read /var/log/zabbix/zabbix_agentd.log
+    ignore_errors: yes
+    shell: "tail -n 20 /var/log/zabbix/zabbix_agentd.log"
+    register: out_log
+...
