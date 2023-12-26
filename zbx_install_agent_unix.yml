@@ -1,0 +1,342 @@
+---
+- name: install zabbix agent on unix
+  hosts: all
+  become: yes
+  gather_facts: true
+
+  vars:
+    
+    - agent_x86_64: zabbix_agent-3.0.31-linux-3.0-amd64-static
+    - agent_i386: zabbix_agent-3.0.31-linux-3.0-i386-static
+    - agent_ppc64le: zabbix_agent-2.2.18-linux-ppc64le-static
+    - agent_solaris: zabbix_agent-3.0.4-solaris-10-sparc
+    - agent_aix_5: zabbix_agent-2.4.4-aix-5.3.06-powerpc
+    - agent_aix_6: zabbix_agent-3.0.23-aix-6.1-powerpc
+    - agent_aix_7: zabbix_agent-3.0.10-aix-7.1-powerpc
+       
+
+  tasks:
+
+
+  #####     PREPARE     #####
+
+
+  - name: add zabbix user
+    become: yes
+    user: 
+      name: zabbix
+      comment: "Account de Servico; Raphael Basseto - Gerencia de Servicos de Infra e Operacoes - TI CPFL"
+      group: soti
+      create_home: yes
+      state: present
+      system: yes
+
+  - name: recursively change ownership of a home directory
+    become: yes
+    file:
+      path: /home/zabbix
+      state: directory
+      recurse: yes
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when:
+      ansible_os_family != "Solaris"
+
+  - name: create configuration directories
+    become: yes
+    file:
+      path: "{{ item }}" 
+      state: directory
+      owner: zabbix
+      group: soti
+      mode: 0755
+    with_items:
+      - /etc/zabbix
+      - /etc/zabbix/zabbix_agentd
+      - /var/log/zabbix
+      - /var/run/zabbix
+
+
+#####     INSTALL     #####
+
+
+  - name: copy binaries case in case of linux x86_64
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}" 
+      owner: zabbix
+      group: soti
+      mode: 0777
+    loop:
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_x86_64 }}/bin/zabbix_get', dest: '/bin/zabbix_get'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_x86_64 }}/bin/zabbix_sender', dest: '/bin/zabbix_sender'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_x86_64 }}/sbin/zabbix_agentd', dest: '/sbin/zabbix_agentd'}
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse'] and ansible_architecture == "x86_64"
+      
+  - name: copy binaries case in case of linux i386
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}" 
+      owner: zabbix
+      group: soti
+      mode: 0755
+    loop:
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_i386 }}/bin/zabbix_get', dest: '/bin/zabbix_get'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_i386 }}/bin/zabbix_sender', dest: '/bin/zabbix_sender'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_i386 }}/sbin/zabbix_agentd', dest: '/sbin/zabbix_agentd'}
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse'] and ansible_architecture == "i386"
+  
+  - name: copy binaries case in case of linux ppc64le
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}" 
+      owner: zabbix
+      group: soti
+      mode: 0755
+    loop:
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_ppc64le }}/sbin/zabbix_agent', dest: '/sbin/zabbix_agent'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_ppc64le }}/sbin/zabbix_sender', dest: '/sbin/zabbix_sender'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_ppc64le }}/sbin/zabbix_agentd', dest: '/sbin/zabbix_agentd'}
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse'] and ansible_architecture == "ppc64le"
+
+  - name: copy binaries in case of solaris
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}" 
+      owner: zabbix
+      group: soti
+      mode: 0755
+    loop:
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_solaris }}/bin/zabbix_get', dest: '/bin/zabbix_get'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_solaris }}/bin/zabbix_sender', dest: '/bin/zabbix_sender'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_solaris }}/sbin/zabbix_agentd', dest: '/sbin/zabbix_agentd'}
+    when: 
+      ansible_os_family in ['Solaris']
+  
+  - name: copy binaries in case of aix 5
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}" 
+      owner: zabbix
+      group: soti
+      mode: 0755
+    loop:
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_aix_5 }}/bin/zabbix_get', dest: '/bin/zabbix_get'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_aix_5 }}/bin/zabbix_sender', dest: '/bin/zabbix_sender'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_aix_5 }}/sbin/zabbix_agentd', dest: '/sbin/zabbix_agentd'}
+    when: 
+      ansible_os_family == "AIX" and ansible_distribution_major_version == "5"
+
+  - name: copy binaries in case of aix 6
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}" 
+      owner: zabbix
+      group: soti
+      mode: 0755
+    loop:
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_aix_6 }}/bin/zabbix_get', dest: '/bin/zabbix_get'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_aix_6 }}/bin/zabbix_sender', dest: '/bin/zabbix_sender'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_aix_6 }}/sbin/zabbix_agentd', dest: '/sbin/zabbix_agentd'}
+    when: 
+      ansible_os_family == "AIX" and ansible_distribution_major_version == "6"
+
+  - name: copy binaries in case of aix 7
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}" 
+      owner: zabbix
+      group: soti
+      mode: 0755
+    loop:
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_aix_7 }}/bin/zabbix_get', dest: '/bin/zabbix_get'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_aix_7 }}/bin/zabbix_sender', dest: '/bin/zabbix_sender'}
+      - {src: '/var/lib/awx/projects/_87__project_automation_1/ansible/zabbix/files/{{ agent_aix_7 }}/sbin/zabbix_agentd', dest: '/sbin/zabbix_agentd'}
+    when: 
+      ansible_os_family == "AIX" and ansible_distribution_major_version == "7"
+
+  #####     CONFIGURE     #####    
+
+ 
+  - name: create conf file
+    become: yes
+    template:
+      src: zabbix_agentd.conf_unix.j2
+      dest: /etc/zabbix/zabbix_agentd.conf
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when:
+      ansible_os_family in ['RedHat', 'Debian', 'AIX', 'Solaris']
+
+  - name: create conf file in case of suse # depois que subir a versao do server/agentes remover esse bloco
+    become: yes
+    template:
+      src: zabbix_agentd.conf_suse.j2
+      dest: /etc/zabbix/zabbix_agentd.conf
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse'] and ansible_architecture == "ppc64le"
+
+  - name: create userparameter file in case of linux and solaris
+    become: yes
+    template:
+      src: userparameter_linux.conf.j2
+      dest: /etc/zabbix/zabbix_agentd/userparameter_examples.conf
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse', 'Solaris']
+
+  - name: create userparameter file in case of aix
+    become: yes
+    template:
+      src: userparameter_aix.conf.j2
+      dest: /etc/zabbix/zabbix_agentd/userparameter_aix.conf
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when: 
+      ansible_os_family in ['AIX']
+
+  - name: create daemon file in case of linux
+    become: yes
+    template:
+      src: rc.zabbix.j2
+      dest: /etc/init.d/rc.zabbix
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse']
+  
+  - name: create daemon file in case of aix and solaris
+    become: yes
+    template:
+      src: rc.zabbix.j2
+      dest: /etc/rc.zabbix
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when: 
+      ansible_os_family in ['AIX', 'Solaris']
+
+
+#####     CONFIGURE     #####    
+
+ 
+  - name: create conf file
+    become: yes
+    template:
+      src: zabbix_agentd.conf_unix.j2
+      dest: /etc/zabbix/zabbix_agentd.conf
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when:
+      ansible_os_family in ['RedHat', 'Debian', 'AIX', 'Solaris']
+
+  - name: create conf file in case of suse # depois que subir a versao do server/agentes remover esse bloco
+    become: yes
+    template:
+      src: zabbix_agentd.conf_suse.j2
+      dest: /etc/zabbix/zabbix_agentd.conf
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when: 
+      ansible_os_family in ['Suse']
+
+  - name: create userparameter file in case of linux and solaris
+    become: yes
+    template:
+      src: userparameter_linux.conf.j2
+      dest: /etc/zabbix/zabbix_agentd/userparameter_examples.conf
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse', 'Solaris']
+
+  - name: create userparameter file in case of aix
+    become: yes
+    template:
+      src: userparameter_aix.conf.j2
+      dest: /etc/zabbix/zabbix_agentd/userparameter_aix.conf
+      owner: zabbix
+      group: soti
+      mode: 0755
+    when: 
+      ansible_os_family in ['AIX']
+
+  - name: create daemon file 
+    become: yes
+    template:
+      src: rc.zabbix.j2
+      dest: /etc/rc.zabbix
+      owner: zabbix
+      group: soti
+      mode: 0755
+
+  - name: permit traffic in zabbix agent ports
+    become_user: root
+    become: yes
+    shell: firewall-cmd --permanent --add-port=10050-10051/tcp --zone=public
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse']
+    ignore_errors: yes
+
+  - name: reload firewalld
+    become_user: root
+    become: yes
+    shell: firewall-cmd --reload
+    when: 
+      ansible_os_family in ['RedHat', 'Debian', 'Suse'] 
+    ignore_errors: yes
+
+
+ #####     START      #####
+
+
+  - name: start zabbix agent 
+    become: yes
+    shell: /etc/rc.zabbix start
+ 
+  - name: add zabbix-agent to inittab 
+    become: yes
+    lineinfile:
+      path: /etc/inittab
+      line: "zabbix:2:wait:sudo -u zabbix /sbin/zabbix_agentd -c /etc/zabbix/zabbix_agentd.conf"
+      state: present
+      backup: yes
+    ignore_errors: yes
+
+
+#####     VERIFY      #####
+
+
+  - name: checking pid file started
+    stat:
+      path: /var/run/zabbix/zabbix_agentd.pid
+    register: check_pid_start
+
+  - fail:
+      msg: "service not started"
+    when: check_pid_start.stat.exists != true
+
+
+...
