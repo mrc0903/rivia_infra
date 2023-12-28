@@ -33,12 +33,12 @@
   #####     CONFIGURE     #####    
 
  
-  #- name: create conf file
-  #  become: true
-  #  ansible.builtin.template:
-  #    src: zabbix_agentd.conf.j2
-  #    dest: /etc/zabbix/zabbix_agentd.conf
-  #    mode: 0755
+  - name: create conf file
+    become: true
+    ansible.builtin.template:
+      src: zabbix_agentd.conf.j2
+      dest: /etc/zabbix/zabbix_agentd.conf
+      mode: 0755
   
   - name: permit traffic in zabbix agent ports
     become: true
