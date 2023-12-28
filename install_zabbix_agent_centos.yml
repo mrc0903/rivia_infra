@@ -22,11 +22,6 @@
   #    state: latest
   #    update_only: yes
 
-  - name: Copy zabbix_agentd.conf file with owner and permissions
-    ansible.builtin.copy:
-        src: zabbix_agentd.conf
-        dest: /etc/zabbix/zabbix_agentd.conf
-
 
   #####     CONFIGURE     #####    
 
