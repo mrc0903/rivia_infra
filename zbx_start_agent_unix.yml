@@ -28,6 +28,11 @@
       state: started
     ignore_errors: yes
     
+  - name: Start service Zabbix Agent, if not started
+    ansible.builtin.service:
+       name: zabbix-agent
+       state: started
+    ignore_errors: yes
 
 ###### READ LOG     #######
 
