@@ -1,0 +1,35 @@
+############ HISTORY #################
+
+# v1 032012 - ZBX 1.8 - Criado por Amix
+# v2 052013 - ZBX 2.0 - Atualizado por Unirede
+# v3 072016 - ZBX 3.0 - Atualizado por Unirede
+# v4 072020 - ZBX 3.0 - Atualizado por DXC > Marco Silva (msilva29@dxc.com)
+
+############ GENERAL PARAMETERS #################
+
+HostnameItem=system.hostname
+HostMetadataItem=system.uname
+ListenPort=10050
+LogFileSize=100
+LogFile=/var/log/zabbix/zabbix_agentd.log
+PidFile=/var/run/zabbix/zabbix_agentd.pid
+Include=/etc/zabbix/zabbix_agentd/*.conf
+DebugLevel=3
+
+######### CONNECTION PARAMETERS #############
+
+EnableRemoteCommands=1
+LogRemoteCommands=1
+Server=192.168.10.118
+ServerActive=192.168.10.118
+Timeout=30
+
+############ ADVANCED PARAMETERS ################
+
+StartAgents=5
+RefreshActiveChecks=180
+BufferSend=15
+BufferSize=150
+AllowRoot=1
+MaxLinesPerSecond=100
+UnsafeUserParameters=1
